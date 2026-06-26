@@ -186,45 +186,44 @@ public class D4S
 	// ---------- ---------- ----------
 	/**
 	 * レスポンスに text を書き込む
-	 * 8kb 以上で gzip 可能な場合は圧縮する
+	 * 8KB を超える場合で gzip 可能な場合は圧縮する
 	 */
-	public async Task WriteTextAsync(HttpListenerContext ctx, string mimeType, string text)
+	public async Task WriteTextAsync(
+		HttpListenerContext ctx,
+		string text,
+		string mimeType   = "text/plain; charset=utf-8",
+		int    statusCode = 200
+	)
 	{
 		var req = ctx.Request;
 		var res = ctx.Response;
+
+		res.ContentType = mimeType;
+		res.StatusCode  = statusCode;
 
 		byte[] buffer = Encoding.UTF8.GetBytes(text);
 
 		// gzip対応チェック
 		string enc = req.Headers["Accept-Encoding"];
 
-		bool useGzip = false;
-		if (!string.IsNullOrEmpty(enc) && enc.Contains("gzip"))
-		{
-			useGzip = true;
-		}
-
-		// 小さいファイルは圧縮しない
-		if (buffer.Length < 1024 * 8) {
-			useGzip = false;
-		}
-
-		// gzip圧縮
-		if (useGzip)
+		// クライアントが gzip を受け付け、レスポンスが 8KB を超える場合は圧縮
+		if (
+			!string.IsNullOrEmpty(enc) &&
+			enc.Contains("gzip")       &&
+			buffer.Length > 1024 * 8
+		)
 		{
 			res.AddHeader("Content-Encoding", "gzip");
 
 			using (var stream = res.OutputStream)
 			using (var gzip = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Compress))
 			{
-				res.ContentType = mimeType;
 				await gzip.WriteAsync(buffer, 0, buffer.Length);
 			}
 		}
 		else
 		{
 			res.ContentLength64 = buffer.Length;
-			res.ContentType = mimeType;
 
 			using (var stream = res.OutputStream)
 			{

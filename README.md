@@ -119,7 +119,12 @@ public class D4S
 	public static string GetMimeType(string path);
 	public static Dictionary<string, string> GetParams(HttpListenerContext ctx);
 
-	public Task WriteTextAsync(HttpListenerContext ctx, string mimeType, string text);
+	public Task WriteTextAsync(
+		HttpListenerContext ctx,
+		string text,
+		string mimeType   = "text/plain; charset=utf-8",
+		int    statusCode = 200
+	);
 	public Task WriteFileAsync(HttpListenerContext ctx, string path);
 
 	public void AddRoute(HttpMethod method, string url, Func<HttpListenerContext, Task> handler);
