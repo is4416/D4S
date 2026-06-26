@@ -1,0 +1,411 @@
+using System;
+using System.IO;
+using System.Net;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+
+// ---------- ---------- ---------- ---------- ----------
+// HttpMethod
+// ---------- ---------- ---------- ---------- ----------
+
+public enum HttpMethod
+{
+	GET,
+	POST
+}
+
+// ---------- ---------- ---------- ---------- ----------
+// D4S (.NET Frameword 4.0 Server)
+// ---------- ---------- ---------- ---------- ----------
+
+public class D4S
+{
+	// ---------- ---------- ----------
+	// Field
+	// ---------- ---------- ----------
+
+	private readonly string _address;
+	private readonly HttpListener _listener;
+	private readonly Dictionary<Tuple<HttpMethod, string>, Func<HttpListenerContext, Task>> _routes;
+	private bool _isListen;
+	private readonly string _root;
+
+	// ---------- ---------- ----------
+	// Constructor
+	// ---------- ---------- ----------
+
+	public D4S(string address, string rootPath = "./") // 例: address = "http://localhost:8000/"
+	{
+		_address  = address;
+		_listener = new HttpListener();
+		_routes   = new Dictionary<Tuple<HttpMethod, string>, Func<HttpListenerContext, Task>>();
+		_isListen = false;
+		_root     = Path.GetFullPath(
+			Path.Combine(AppDomain.CurrentDomain.BaseDirectory, rootPath)
+		);
+
+		if (!Directory.Exists(_root))
+		{
+			throw new DirectoryNotFoundException(_root);
+		}
+
+		_listener.Prefixes.Add(address);
+	}
+
+	// private: static
+	// ---------- ---------- ----------
+	// BuildDirectoryListing
+	// ---------- ---------- ----------
+	/**
+	 * ディレクトリの内容を一覧表示する HTML を生成する。
+	 *
+	 * path - 実ディレクトリのパス、
+	 * url  - リンク生成に使用する URL パス。
+	 */
+	private static string BuildDirectoryListing(string path, string url)
+	{
+		var sb = new StringBuilder();
+
+		string baseUrl = url.EndsWith("/") ? url : url + "/";
+
+		sb.Append("<html><body><h1>Index of " + url + "</h1><ul>");
+
+		foreach (var dir in Directory.GetDirectories(path))
+		{
+			var name = Path.GetFileName(dir);
+			string encoded = Uri.EscapeDataString(name);
+			sb.Append("<li><a href=\"" + baseUrl + encoded + "\">" + name + "/</a></li>");
+		}
+
+		foreach (var file in Directory.GetFiles(path))
+		{
+			var name = Path.GetFileName(file);
+			string encoded = Uri.EscapeDataString(name);
+			sb.Append("<li><a href=\"" + baseUrl + encoded + "\">" + name + "</a></li>");
+		}
+
+		sb.Append("</ul></body></html>");
+		return sb.ToString();
+	}
+
+	// public: static
+	// ---------- ---------- ----------
+	// GetMimeType
+	// ---------- ---------- ----------
+	/**
+	 * path から mimeType 文字列を作成する
+	 */
+	public static string GetMimeType(string path)
+	{
+		var ext = Path.GetExtension(path).ToLowerInvariant();
+
+		switch (ext)
+		{
+			case ".html" : return "text/html; charset=utf-8";
+			case ".css"  : return "text/css; charset=utf-8";
+			case ".js"   : return "text/javascript; charset=utf-8";
+			case ".json" : return "application/json";
+			case ".png"  : return "image/png";
+			case ".jpg"  :
+			case ".jpeg" : return "image/jpeg";
+			case ".gif"  : return "image/gif";
+			case ".svg"  : return "image/svg+xml";
+			case ".webp" : return "image/webp";
+			case ".avif" : return "image/avif";
+			case ".ico"  : return "image/x-icon";
+			case ".bmp"  : return "image/bmp";
+			case ".tif"  :
+			case ".tiff" : return "image/tiff";
+			case ".mp3"  : return "audio/mpeg";
+			case ".wav"  : return "audio/wave";
+			case ".ogg"  : return "audio/ogg";
+			case ".mp4"  : return "video/mp4";
+			case ".webm" : return "video/webm";
+			case ".ogv"  : return "video/ogg";
+			case ".woff" : return "font/woff";
+			case ".woff2": return "font/woff2";
+			case ".ttf"  : return "font/ttf";
+			case ".otf"  : return "font/otf";
+			case ".zip"  : return "application/zip";
+			case ".pdf"  : return "application/pdf";
+			case ".txt"  : return "text/plain; charset=utf-8";
+			case ".xml"  : return "application/xml";
+			case ".csv"  : return "text/csv; charset=utf-8";
+			default      : return "application/octet-stream";
+		}
+	}
+
+	// public: static
+	// ---------- ---------- ----------
+	// GetParams
+	// ---------- ---------- ----------
+	/**
+	 * GET または POST のパラメータを取得する
+	 */
+	public static Dictionary<string, string> GetParams(HttpListenerContext ctx)
+	{
+		var req = ctx.Request;
+
+		var result = new Dictionary<string, string>();
+
+		// GET
+		foreach (string key in req.QueryString.AllKeys)
+		{
+			if (!string.IsNullOrEmpty(key))
+			{
+				result[key] = req.QueryString[key];
+			}
+		}
+
+		// POST
+		if (req.HasEntityBody)
+		{
+			using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
+			{
+				string body = reader.ReadToEnd();
+
+				var parsed = System.Web.HttpUtility.ParseQueryString(body);
+
+				foreach (string key in parsed.AllKeys)
+				{
+					if (!string.IsNullOrEmpty(key))
+					{
+						result[key] = parsed[key];
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	// public
+	// ---------- ---------- ----------
+	// WriteTextAsync
+	// ---------- ---------- ----------
+	/**
+	 * レスポンスに text を書き込む
+	 * 8kb 以上で gzip 可能な場合は圧縮する
+	 */
+	public async Task WriteTextAsync(HttpListenerContext ctx, string mimeType, string text)
+	{
+		var req = ctx.Request;
+		var res = ctx.Response;
+
+		byte[] buffer = Encoding.UTF8.GetBytes(text);
+
+		// gzip対応チェック
+		string enc = req.Headers["Accept-Encoding"];
+
+		bool useGzip = false;
+		if (!string.IsNullOrEmpty(enc) && enc.Contains("gzip"))
+		{
+			useGzip = true;
+		}
+
+		// 小さいファイルは圧縮しない
+		if (buffer.Length < 1024 * 8) {
+			useGzip = false;
+		}
+
+		// gzip圧縮
+		if (useGzip)
+		{
+			res.AddHeader("Content-Encoding", "gzip");
+
+			using (var stream = res.OutputStream)
+			using (var gzip = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Compress))
+			{
+				res.ContentType = mimeType;
+				await gzip.WriteAsync(buffer, 0, buffer.Length);
+			}
+		}
+		else
+		{
+			res.ContentLength64 = buffer.Length;
+			res.ContentType = mimeType;
+
+			using (var stream = res.OutputStream)
+			{
+				await stream.WriteAsync(buffer, 0, buffer.Length);
+			}
+		}
+	}
+
+	// public
+	// ---------- ---------- ----------
+	// WriteFileAsync
+	// ---------- ---------- ----------
+	/**
+	 * ファイルをレスポンスに書き込む
+	 */
+	public async Task WriteFileAsync(HttpListenerContext ctx, string path)
+	{
+		var res = ctx.Response;
+
+		if (!File.Exists(path))
+		{
+			res.StatusCode = 404;
+			await WriteTextAsync(ctx, "text/plain", "404 Not Found");
+			return;
+		}
+
+		string mimeType = GetMimeType(path);
+
+		using (var fs = File.OpenRead(path))
+		using (var stream = res.OutputStream)
+		{
+			res.ContentType = mimeType;
+			res.ContentLength64 = fs.Length;
+
+			await fs.CopyToAsync(stream);
+		}
+	}
+
+	// public
+	// ---------- ---------- ----------
+	// AddRoute
+	// ---------- ---------- ----------
+	/**
+	 * ルートを追加する
+	 */
+	public void AddRoute(HttpMethod method, string url, Func<HttpListenerContext, Task> handler)
+	{
+		_routes[Tuple.Create(method, url)] = handler;
+	}
+
+	// private
+	// ---------- ---------- ----------
+	// HandleRequest
+	// ---------- ---------- ----------
+	/**
+	 * Start から呼ばれるリクエスト処理
+	 */
+	private async Task HandleRequest(HttpListenerContext ctx)
+	{
+		var req = ctx.Request;
+		var res = ctx.Response;
+
+		var url = req.Url != null ? req.Url.AbsolutePath : "/";
+		if (string.IsNullOrEmpty(url)) url = "/";
+
+		// method
+		HttpMethod method;
+		var m = req.HttpMethod.ToUpperInvariant();
+
+		if (m == "GET") method = HttpMethod.GET;
+		else if (m == "POST") method = HttpMethod.POST;
+		else
+		{
+			res.StatusCode = 405;
+			await WriteTextAsync(ctx, "text/plain", "405 Method Not Allowed");
+			return;
+		}
+
+		// routing
+		var key = Tuple.Create(method, url);
+		Func<HttpListenerContext, Task> handler;
+
+		if (_routes.TryGetValue(key, out handler))
+		{
+			await handler(ctx);
+			return;
+		}
+
+		// static
+		string root = _root;
+		string path = Path.GetFullPath(
+			Path.Combine(_root , url.TrimStart('/'))
+		);
+
+		// traversal防止
+		if (!path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+		{
+			res.StatusCode = 403;
+			await WriteTextAsync(ctx, "text/plain", "403 Forbidden");
+			return;
+		}
+
+		// directory
+		if (Directory.Exists(path))
+		{
+			string indexPath = Path.Combine(path, "index.html");
+
+			if (File.Exists(indexPath))
+			{
+				path = indexPath;
+			}
+			else
+			{
+				// ディレクトリ一覧
+				string html = BuildDirectoryListing(path, url);
+				await WriteTextAsync(ctx, "text/html; charset=utf-8", html);
+				return;
+			}
+		}
+
+		// file
+		if (File.Exists(path))
+		{
+			await WriteFileAsync(ctx, path);
+			return;
+		}
+
+		// 404
+		res.StatusCode = 404;
+		await WriteTextAsync(ctx, "text/plain", "404 Not Found");
+	}
+
+	// public
+	// ---------- ---------- ----------
+	// Start
+	// ---------- ---------- ----------
+	/**
+	 * サーバーを起動してメッセージを処理する
+	 */
+	public async Task Start()
+	{
+		_listener.Start();
+		Console.WriteLine("listening: " + _address);
+
+		_isListen = true;
+
+		try
+		{
+			while (_isListen)
+			{
+				var ctx = await _listener.GetContextAsync();
+
+				var _ = Task.Run(async () =>
+				{
+					try
+					{
+						await HandleRequest(ctx);
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex);
+					}
+				});
+			}
+		}
+
+		catch (HttpListenerException)
+		{
+			Console.WriteLine("stop LightServer");
+		}
+	}
+
+	// ---------- ---------- ----------
+	// public Stop
+	// ---------- ---------- ----------
+	/**
+	 * サーバーを停止する
+	 */
+	public void Stop()
+	{
+		_isListen = false;
+		_listener.Stop();
+	}
+}
