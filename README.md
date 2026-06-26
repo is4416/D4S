@@ -153,7 +153,7 @@ server.AddRoute(HttpMethod.GET, "/api/test", (HttpListenerContext ctx) => {
 	return server.WriteTextAsync(ctx, "text/plain; charset=utf-8", text);
 });
 
-await server.Start();
+server.Start().Wait();
 ```
 
 ---
