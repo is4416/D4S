@@ -16,7 +16,7 @@ public enum HttpMethod
 }
 
 // ---------- ---------- ---------- ---------- ----------
-// D4S (.NET Frameword 4.0 Server)
+// D4S (.NET Framework 4.0 Server)
 // ---------- ---------- ---------- ---------- ----------
 
 public class D4S
@@ -104,7 +104,7 @@ public class D4S
 		{
 			case ".html" : return "text/html; charset=utf-8";
 			case ".css"  : return "text/css; charset=utf-8";
-			case ".js"   : return "text/javascript; charset=utf-8";
+			case ".js"   : return "application/javascript; charset=utf-8";
 			case ".json" : return "application/json";
 			case ".png"  : return "image/png";
 			case ".jpg"  :
@@ -152,9 +152,10 @@ public class D4S
 		// GET
 		foreach (string key in req.QueryString.AllKeys)
 		{
-			if (!string.IsNullOrEmpty(key))
+			var value = req.QueryString[key];
+			if (!string.IsNullOrEmpty(key) && value != null)
 			{
-				result[key] = req.QueryString[key];
+				result[key] = value;
 			}
 		}
 
@@ -169,9 +170,10 @@ public class D4S
 
 				foreach (string key in parsed.AllKeys)
 				{
-					if (!string.IsNullOrEmpty(key))
+					var value = parsed[key];
+					if (!string.IsNullOrEmpty(key) && value != null)
 					{
-						result[key] = parsed[key];
+						result[key] = value;
 					}
 				}
 			}
@@ -204,7 +206,7 @@ public class D4S
 		byte[] buffer = Encoding.UTF8.GetBytes(text);
 
 		// gzip対応チェック
-		string enc = req.Headers["Accept-Encoding"];
+		var enc = req.Headers["Accept-Encoding"];
 
 		// クライアントが gzip を受け付け、レスポンスが 8KB を超える場合は圧縮
 		if (
@@ -245,8 +247,7 @@ public class D4S
 
 		if (!File.Exists(path))
 		{
-			res.StatusCode = 404;
-			await WriteTextAsync(ctx, "text/plain", "404 Not Found");
+			await WriteTextAsync(ctx, "404 Not Found", statusCode: 404);
 			return;
 		}
 
@@ -297,8 +298,7 @@ public class D4S
 		else if (m == "POST") method = HttpMethod.POST;
 		else
 		{
-			res.StatusCode = 405;
-			await WriteTextAsync(ctx, "text/plain", "405 Method Not Allowed");
+			await WriteTextAsync(ctx, "405 Method Not Allowed", statusCode: 405);
 			return;
 		}
 
@@ -321,8 +321,7 @@ public class D4S
 		// traversal防止
 		if (!path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
 		{
-			res.StatusCode = 403;
-			await WriteTextAsync(ctx, "text/plain", "403 Forbidden");
+			await WriteTextAsync(ctx, "403 Forbidden", statusCode: 403);
 			return;
 		}
 
@@ -339,7 +338,7 @@ public class D4S
 			{
 				// ディレクトリ一覧
 				string html = BuildDirectoryListing(path, url);
-				await WriteTextAsync(ctx, "text/html; charset=utf-8", html);
+				await WriteTextAsync(ctx, html, "text/html; charset=utf-8");
 				return;
 			}
 		}
@@ -352,8 +351,7 @@ public class D4S
 		}
 
 		// 404
-		res.StatusCode = 404;
-		await WriteTextAsync(ctx, "text/plain", "404 Not Found");
+		await WriteTextAsync(ctx, "404 Not Found", statusCode: 404);
 	}
 
 	// public

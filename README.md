@@ -99,6 +99,8 @@ public class JsonDirectory : JsonItem
 
 ### D4S.cs
 
+HttpMethod
+
 ```csharp
 public enum HttpMethod
 {

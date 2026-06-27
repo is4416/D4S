@@ -1,13 +1,18 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+
+// .NET Framework
 using System.Web.Script.Serialization;
+
+// .NET 8
+// using System.Text.Json;
 
 // ---------- ---------- ---------- ---------- ----------
 // Json
 // ---------- ---------- ---------- ---------- ----------
 
-public class Json
+public static class Json
 {
 	// static
 	// ---------- ---------- ----------
@@ -16,14 +21,16 @@ public class Json
 	/**
 	 * オブジェクトを JSON 化する
 	 */
-	static string Stringify(object obj)
+	public static string Stringify(object obj)
 	{
-		var serializer = new JavaScriptSerializer();
-
+		// .NET Framework
+		var serializer            = new JavaScriptSerializer();
 		serializer.MaxJsonLength  = int.MaxValue;
 		serializer.RecursionLimit = 100;
-
 		return serializer.Serialize(obj);
+
+		// .NET 8
+		// return JsonSerializer.Serialize(obj);
 	}
 }
 
