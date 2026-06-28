@@ -196,7 +196,7 @@ server.Start().Wait();
 
 ### D4SHandlers.cs
 
-`D4S.AddRoute` のプリセット
+`D4S.AddRoute` に登録できるハンドラのサンプル集
 
 ```csharp
 public static class D4SHandlers
@@ -204,6 +204,7 @@ public static class D4SHandlers
 	public static Func<HttpListenerContext, Task> Hello(D4S server);
 	public static Func<HttpListenerContext, Task> StartProcess(D4S server);
 	public static Func<HttpListenerContext, Task> SaveToFile(D4S server);
+	public static Func<HttpListenerContext, Task> LoadFromFile(D4S server);
 	public static Func<HttpListenerContext, Task> CreateDirectoryTree(D4S server);
 }
 ```
@@ -211,6 +212,7 @@ public static class D4SHandlers
 - Hello              : ハンドラ実装例
 - StartProcess       : `app` を `args` 付きで呼び出す
 - SaveToFile         : `data` を `path` で指定した場所に保存する (とりあえずテキストデータだけ)
+- LoadFromFile       : `path` からデータを取得
 - CreateDirectoryTree: `path` で指定したディレクトリパスから、JSON ツリーを作成する
 
 ---

@@ -99,6 +99,31 @@ public static class D4SHandlers
 	}
 
 	// ---------- ---------- ----------
+	// LoadFromFile
+	// ---------- ---------- ----------
+	/**
+	 * [path] からデータを取得
+	 */
+	public static Func<HttpListenerContext, Task> LoadFromFile(D4S server)
+	{
+		return async ctx => {
+			var param = D4S.GetParams(ctx);
+			var path  = param.ContainsKey("path") ? param["path"] : "";
+
+			if (
+				path == "" ||
+				!File.Exists(path)
+			)
+			{
+				await server.WriteTextAsync(ctx, "error: loadFromFile path = " + path, statusCode: 403);
+				return;
+			}
+
+			await server.WriteFileAsync(ctx, path);
+		};
+	}
+
+	// ---------- ---------- ----------
 	// CreateDirectoryTree
 	// ---------- ---------- ----------
 	/*
