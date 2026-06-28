@@ -35,7 +35,10 @@ public class D4S
 	// Constructor
 	// ---------- ---------- ----------
 
-	public D4S(string address, string rootPath = "./") // 例: address = "http://localhost:8000/"
+	public D4S(
+		string address  = "http://localhost:8000/",
+		string rootPath = "./"
+	)
 	{
 		_address  = address;
 		_listener = new HttpListener();

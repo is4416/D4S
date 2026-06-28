@@ -7,6 +7,8 @@
 
 Node.js や .NET SDK などをインストールできない会社の Windows PC 上でも、付属の csc だけでビルド・実行できることをコンセプトとしています
 
+[Program](#programcs)
+[Json](#jsoncs)
 [D4S](#d4scs)
 
 ## Features
@@ -56,7 +58,7 @@ Json
 オブジェクトをJSON文字列に変換します
 
 ```csharp
-public class Json
+public static class Json
 {
 	public static string Stringify(object obj);
 }
@@ -116,7 +118,10 @@ D4S の本体クラスです
 ```csharp
 public class D4S
 {
-	public D4S(string address, string rootPath = "./");
+	public D4S(
+		string address  = "http://localhost:8000/",
+		string rootPath = "./"
+	);
 
 	public static string GetMimeType(string path);
 	public static Dictionary<string, string> GetParams(HttpListenerContext ctx);
