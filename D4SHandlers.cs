@@ -29,8 +29,7 @@ public static class D4SHandlers
 	// CreateDirectoryTree
 	// ---------- ---------- ----------
 	/*
-	 * 指定したディレクトリから JSON ツリーを作成する
-	 * 失敗したときは からの JSON を返す
+	 * [rootPath] で指定したディレクトリパスから、JSONツリーを作成する
 	 */
 	public static Func<HttpListenerContext, Task> CreateDirectoryTree(D4S server)
 	{

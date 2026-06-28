@@ -10,6 +10,7 @@ Node.js や .NET SDK などをインストールできない会社の Windows PC
 [Program](#programcs)
 [Json](#jsoncs)
 [D4S](#d4scs)
+[D4SHandlers](#d4shandlerscs)
 
 ## Features
 
@@ -130,7 +131,8 @@ public class D4S
 	public static string GetMimeType(string path);
 	public static Dictionary<string, string> GetParams(HttpListenerContext ctx);
 
-	public Task WriteTextAsync(
+	public Task WriteTextAsync
+	(
 		HttpListenerContext ctx,
 		string text,
 		string mimeType   = "text/plain; charset=utf-8",
@@ -171,6 +173,23 @@ server.AddRoute(HttpMethod.GET, "/api/test", (HttpListenerContext ctx) => {
 
 server.Start().Wait();
 ```
+
+---
+
+### D4SHandlers.cs
+
+`D4S.AddRoute` のプリセット
+
+```csharp
+public static class D4SHandlers
+{
+	public static Func<HttpListenerContext, Task> Hello(D4S server);
+	public static Func<HttpListenerContext, Task> CreateDirectoryTree(D4S server);
+}
+```
+
+- Hello              : ハンドラ実装例
+- CreateDirectoryTree: [rootPath] で指定したディレクトリパスから、JSON ツリーを作成する
 
 ---
 
