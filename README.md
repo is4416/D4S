@@ -1,11 +1,30 @@
 # D4S (.NET Framework 4.0 Server)
 
-.NET Framework 4.0 標準機能だけで動作する軽量Webサーバー
+.NET Framework 4.0 標準機能だけで動作する、  
+フロントエンド開発者向けの軽量ローカルWebサーバーです。
 
 フロントエンドを中心に開発し、バックエンドは AddRoute に必要な処理を書くだけで利用できます  
 静的ファイル配信や HTTP リクエスト処理は D4S が担当します
 
 Node.js や .NET SDK などをインストールできない会社の Windows PC 上でも、付属の csc だけでビルド・実行できることをコンセプトとしています
+
+**構成**
+
+```
+D4S/
+ ├ D4S.cs (ライブラリ本体)
+ │
+ ├ Program.cs (サンプル)
+ ├ Json.cs (サンプルで使用する補助クラス)
+ ├ D4SHandlers.cs (サンプルハンドラ)
+ │
+ └ README.md (README ファイル)
+```
+
+ライブラリ本体は `D4S.cs` のみです。
+
+`Json.cs` は JSON を扱うための補助クラス、  
+`D4SHandlers.cs` は `AddRoute` に登録できるハンドラのサンプル実装です。
 
 - [Program.cs](#programcs)
 - [Json.cs](#jsoncs)
@@ -14,12 +33,13 @@ Node.js や .NET SDK などをインストールできない会社の Windows PC
 
 ## Features
 
-- .NET Framework 4.0 標準機能のみで動作
+- Single-file library (`D4S.cs`)
 - 外部ライブラリ不要
+- .NET Framework 4.0 標準機能のみで動作
 - 静的ファイル配信
 - GET / POST のルーティング
-- JSONレスポンス生成
-- MIMEタイプ自動判定
+- JSON レスポンス生成
+- MIME タイプ自動判定
 
 ---
 
@@ -27,11 +47,13 @@ Node.js や .NET SDK などをインストールできない会社の Windows PC
 
 .NET Framework 4.0 に付属する `csc` だけでビルドできます
 
-ビルド例:
+最小構成
 
 ```bash
-csc Program.cs D4S.cs Json.cs D4SHandlers.cs
+csc Program.cs D4S.cs
 ```
+
+`Json.cs` や `D4SHandlers.cs` を利用する場合は、それらも一緒にコンパイルしてください
 
 ---
 
