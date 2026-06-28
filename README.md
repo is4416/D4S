@@ -38,9 +38,9 @@ csc Program.cs D4S.cs Json.cs
 
 ### Program.cs
 
-Program
+**Program**
 
-エントリーポイントです。
+エントリーポイントです。  
 基本的な使用例は `Program.cs` を参照してください。
 
 ```csharp
@@ -54,7 +54,8 @@ class Program
 
 ### Json.cs
 
-Json  
+**Json**
+
 オブジェクトをJSON文字列に変換します
 
 ```csharp
@@ -64,7 +65,8 @@ public static class Json
 }
 ```
 
-JsonItem  
+**JsonItem**
+
 JSON形式に変換可能なオブジェクトの基底クラス
 
 ```csharp
@@ -75,7 +77,8 @@ public class JsonItem
 }
 ```
 
-JsonFile : JsonItem  
+**JsonFile : JsonItem**
+
 JSON形式に変換可能なファイル用オブジェクト
 
 ```csharp
@@ -86,7 +89,8 @@ public class JsonFile : JsonItem
 }
 ```
 
-JsonDirectory : JsonItem  
+**JsonDirectory : JsonItem**
+
 JSON形式に変換可能なディレクトリ用オブジェクト
 
 ```csharp
@@ -101,7 +105,7 @@ public class JsonDirectory : JsonItem
 
 ### D4S.cs
 
-HttpMethod
+**HttpMethod**
 
 ```csharp
 public enum HttpMethod
@@ -111,7 +115,7 @@ public enum HttpMethod
 }
 ```
 
-D4S
+**D4S**
 
 D4S の本体クラスです
 
