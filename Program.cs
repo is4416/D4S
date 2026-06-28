@@ -28,6 +28,9 @@ class Program
 			return server.WriteTextAsync(ctx, "text/plain; charset=utf-8", "GET Text = " + text);
 		});
 
+		// D4SHandlers利用（例）
+		server.AddRoute(HttpMethod.Post, "/api/createDirectoryTree", D4SHandlers.CreateDirectoryTree(server));
+
 		// ブラウザ起動
 		Process.Start(address);
 
