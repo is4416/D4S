@@ -35,7 +35,7 @@ public static class D4SHandlers
 	{
 		return async ctx =>
 		{
-			var param = server.GetParams(ctx);
+			var param = D4S.GetParams(ctx);
 			var rootPath = param.ContainsKey("rootPath") ? param["rootPath"] : "";
 
 			if (
@@ -43,7 +43,7 @@ public static class D4SHandlers
 				!Directory.Exists(rootPath)
 			)
 			{
-				await server.WriteTextAsync(ctx, "{}", "application/json", 403);
+				await server.WriteTextAsync(ctx, "{rootPath=" + rootPath + "}", "application/json", 403);
 			}
 			else
 			{

@@ -168,15 +168,63 @@ public class D4S
 			using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
 			{
 				string body = reader.ReadToEnd();
+				string contentType = req.ContentType ?? "";
 
-				var parsed = System.Web.HttpUtility.ParseQueryString(body);
-
-				foreach (string key in parsed.AllKeys)
+				// application/x-www-form-urlencoded
+				if (contentType.StartsWith("application/x-www-form-urlencoded"))
 				{
-					var value = parsed[key];
-					if (!string.IsNullOrEmpty(key) && value != null)
+					var parsed = System.Web.HttpUtility.ParseQueryString(body);
+
+					foreach (string key in parsed.AllKeys)
 					{
-						result[key] = value;
+						var value = parsed[key];
+						if (!string.IsNullOrEmpty(key) && value != null)
+						{
+							result[key] = value;
+						}
+					}
+				}
+
+				// multipart/form-data (FormData)
+				else if (contentType.StartsWith("multipart/form-data"))
+				{
+					int p = contentType.IndexOf("boundary=");
+					if (p >= 0)
+					{
+						string boundary = "--" + contentType.Substring(p + 9);
+
+						string[] parts = body.Split(
+							new string[] { boundary },
+							StringSplitOptions.RemoveEmptyEntries
+						);
+
+						foreach (string part in parts)
+						{
+							if (part == "--\r\n" || part == "--")
+								continue;
+
+							int headerEnd = part.IndexOf("\r\n\r\n");
+							if (headerEnd < 0)
+								continue;
+
+							string header = part.Substring(0, headerEnd);
+							string value = part.Substring(headerEnd + 4);
+
+							value = value.TrimEnd('\r', '\n', '-');
+
+							int namePos = header.IndexOf("name=\"");
+							if (namePos < 0)
+								continue;
+
+							namePos += 6;
+							int nameEnd = header.IndexOf("\"", namePos);
+							if (nameEnd < 0)
+								continue;
+
+							string name = header.Substring(namePos, nameEnd - namePos);
+
+							result[name] = value;
+						}
 					}
 				}
 			}

@@ -25,11 +25,11 @@ class Program
 		server.AddRoute(HttpMethod.GET, "/api/test", (HttpListenerContext ctx) => {
 			var param = D4S.GetParams(ctx);
 			string text = param.ContainsKey("text") ? param["text"] : "";
-			return server.WriteTextAsync(ctx, "text/plain; charset=utf-8", "GET Text = " + text);
+			return server.WriteTextAsync(ctx, "GET Text = " + text, "text/plain; charset=utf-8");
 		});
 
 		// D4SHandlers利用（例）
-		server.AddRoute(HttpMethod.Post, "/api/createDirectoryTree", D4SHandlers.CreateDirectoryTree(server));
+		server.AddRoute(HttpMethod.POST, "/api/createDirectoryTree", D4SHandlers.CreateDirectoryTree(server));
 
 		// ブラウザ起動
 		Process.Start(address);
