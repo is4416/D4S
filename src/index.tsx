@@ -45,7 +45,7 @@ const action_button2Click = (state: State) => {
 		// const data = new  URLSearchParams(); // こっちでも良い
 		const data = new FormData();
 
-		data.append("rootPath", "./")
+		data.append("path", "./")
 
 		const res = await fetch("/api/createDirectoryTree", {
 			method: "POST",

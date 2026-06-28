@@ -7,10 +7,10 @@
 
 Node.js や .NET SDK などをインストールできない会社の Windows PC 上でも、付属の csc だけでビルド・実行できることをコンセプトとしています
 
-[Program](#programcs)
-[Json](#jsoncs)
-[D4S](#d4scs)
-[D4SHandlers](#d4shandlerscs)
+- [Program.cs](#programcs)
+- [Json.cs](#jsoncs)
+- [D4S.cs](#d4scs)
+- [D4SHandlers.cs](#d4shandlerscs)
 
 ## Features
 
@@ -30,7 +30,17 @@ Node.js や .NET SDK などをインストールできない会社の Windows PC
 ビルド例:
 
 ```bash
-csc Program.cs D4S.cs Json.cs
+csc Program.cs D4S.cs Json.cs D4SHandlers.cs
+```
+
+---
+
+## Sample
+
+```csharp
+var server = new D4S();
+server.AddRoute(HttpMethod.GET, "/api/hello", D4SHandlers.Hello(server));
+server.Start().Wait();
 ```
 
 ---
@@ -146,7 +156,15 @@ public class D4S
 }
 ```
 
-コンストラクタで `rootPath` を省略した場合は exe ファイルが配置されたフォルダがドキュメントルートとなります
+コンストラクタで `rootPath` を省略した場合は、exe ファイルが配置されたフォルダがドキュメントルートとなります。
+
+- GetMimeType   : 拡張子から MIME タイプを取得します
+- GetParams     : GET または POST のパラメータを取得します
+- WriteTextAsync: レスポンスにテキストを書き込みます
+- WriteFileAsync: 指定したファイルをレスポンスとして返します
+- AddRoute      : ルートを追加します
+- Start         : サーバーを起動します
+- Stop          : サーバーを停止します
 
 ---
 
@@ -168,7 +186,7 @@ D4S server = new D4S("http://localhost:8000/", "dist");
 server.AddRoute(HttpMethod.GET, "/api/test", (HttpListenerContext ctx) => {
 	var param = D4S.GetParams(ctx);
 	string text = param.ContainsKey("text") ? param["text"] : "";
-	return server.WriteTextAsync(ctx, "text/plain; charset=utf-8", text);
+	return server.WriteTextAsync(ctx, text);
 });
 
 server.Start().Wait();
@@ -184,12 +202,16 @@ server.Start().Wait();
 public static class D4SHandlers
 {
 	public static Func<HttpListenerContext, Task> Hello(D4S server);
+	public static Func<HttpListenerContext, Task> StartProcess(D4S server);
+	public static Func<HttpListenerContext, Task> SaveToFile(D4S server);
 	public static Func<HttpListenerContext, Task> CreateDirectoryTree(D4S server);
 }
 ```
 
 - Hello              : ハンドラ実装例
-- CreateDirectoryTree: [rootPath] で指定したディレクトリパスから、JSON ツリーを作成する
+- StartProcess       : `app` を `args` 付きで呼び出す
+- SaveToFile         : `data` を `path` で指定した場所に保存する (とりあえずテキストデータだけ)
+- CreateDirectoryTree: `path` で指定したディレクトリパスから、JSON ツリーを作成する
 
 ---
 
