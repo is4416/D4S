@@ -129,10 +129,16 @@ JSON形式に変換可能なディレクトリ用オブジェクト
 ```csharp
 public class JsonDirectory : JsonItem
 {
-	public JsonDirectory(DirectoryInfo info);
+	public JsonDirectory(DirectoryInfo info, int depth = -1);
 	public override object ToObject();
 }
 ```
+
+**JsonDirectory**
+- depth: 子ディレクトリを再帰的に取得する深さ
+- `-1`: 全階層取得 (規定値)
+- `0` : 子ディレクトリを取得しない (ファイルのみ)
+- `1`以上 : 指定した階層まで取得
 
 ---
 

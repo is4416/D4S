@@ -125,8 +125,12 @@ public class JsonDirectory : JsonItem
 	// ---------- ---------- ----------
 	// Constructor
 	// ---------- ---------- ----------
-
-	public JsonDirectory(DirectoryInfo info) : base(info)
+	/**
+	 * depth: 子ディレクトリを再帰的に取得する深さ
+	 * -1: 制限なし
+	 *  0: 子ディレクトリを取得しない
+	 */
+	public JsonDirectory(DirectoryInfo info, int depth = -1) : base(info)
 	{
 		_files       = new Dictionary<string, JsonFile>();
 		_directories = new Dictionary<string, JsonDirectory>();
@@ -154,6 +158,13 @@ public class JsonDirectory : JsonItem
 		// add directories
 		try
 		{
+			if (depth == 0)
+			{
+				return;
+			}
+
+			int nextDepth = depth < 0 ? -1 : depth - 1;
+
 			foreach (var directoryInfo in info.EnumerateDirectories())
 			{
 				if ((directoryInfo.Attributes & FileAttributes.ReparsePoint) != 0)
@@ -163,7 +174,7 @@ public class JsonDirectory : JsonItem
 
 				try
 				{
-					_directories[directoryInfo.Name] = new JsonDirectory(directoryInfo);
+					_directories[directoryInfo.Name] = new JsonDirectory(directoryInfo, nextDepth);
 				}
 				catch (Exception err)
 				{
