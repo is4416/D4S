@@ -22,8 +22,8 @@ public static class D4SHandlers
 	 */
 	public static Func<HttpListenerContext, Task> Hello(D4S server)
 	{
-		return async ctx => {
-			await server.WriteTextAsync(ctx, "Hello World from .NET Framework D4S Handlers.");
+		return ctx => {
+			return server.WriteTextAsync(ctx, "Hello World from .NET Framework D4S Handlers.");
 		};
 	}
 
@@ -35,25 +35,24 @@ public static class D4SHandlers
 	 */
 	public static Func<HttpListenerContext, Task> StartProcess(D4S server)
 	{
-		return async ctx => {
+		return ctx => {
 			var param = D4S.GetParams(ctx);
 			var app   = param.ContainsKey("app") ? param["app"] : "";
 			var args  = param.ContainsKey("args") ? param["args"] : "";
 
 			if (app == "")
 			{
-				await server.WriteTextAsync(ctx, "parameter 'app' is required", statusCode: 400);
-				return;
+				return server.WriteTextAsync(ctx, "parameter 'app' is required", statusCode: 400);
 			}
 
 			try
 			{
 				Process.Start(app, args);
-				await server.WriteTextAsync(ctx, "success");
+				return server.WriteTextAsync(ctx, "success");
 			}
 			catch (Exception err)
 			{
-				await server.WriteTextAsync(ctx, err.Message, statusCode: 500);
+				return server.WriteTextAsync(ctx, err.Message, statusCode: 500);
 			}
 		};
 	}
@@ -67,7 +66,7 @@ public static class D4SHandlers
 	 */
 	public static Func<HttpListenerContext, Task> SaveToFile(D4S server)
 	{
-		return async ctx => {
+		return ctx => {
 			var param = D4S.GetParams(ctx);
 			var data  = param.ContainsKey("data") ? param["data"] : "";
 			var path  = param.ContainsKey("path") ? param["path"] : "";
@@ -76,8 +75,7 @@ public static class D4SHandlers
 				path == ""
 			)
 			{
-				await server.WriteTextAsync(ctx, "error: saveToFile path = " + path, statusCode: 403);
-				return;
+				return server.WriteTextAsync(ctx, "error: saveToFile path = " + path, statusCode: 403);
 			}
 
 			var parent = Path.GetDirectoryName(path);
@@ -88,12 +86,12 @@ public static class D4SHandlers
 
 			try
 			{
-				await File.WriteAllTextAsync(path, data);
-				await server.WriteTextAsync(ctx, "success");
+				File.WriteAllText(path, data);
+				return server.WriteTextAsync(ctx, "success");
 			}
 			catch (Exception err)
 			{
-				await server.WriteTextAsync(ctx, err.Message, statusCode: 400);
+				return server.WriteTextAsync(ctx, err.Message, statusCode: 400);
 			}
 		};
 	}
@@ -106,7 +104,7 @@ public static class D4SHandlers
 	 */
 	public static Func<HttpListenerContext, Task> LoadFromFile(D4S server)
 	{
-		return async ctx => {
+		return ctx => {
 			var param = D4S.GetParams(ctx);
 			var path  = param.ContainsKey("path") ? param["path"] : "";
 
@@ -115,11 +113,10 @@ public static class D4SHandlers
 				!File.Exists(path)
 			)
 			{
-				await server.WriteTextAsync(ctx, "error: loadFromFile path = " + path, statusCode: 403);
-				return;
+				return server.WriteTextAsync(ctx, "error: loadFromFile path = " + path, statusCode: 403);
 			}
 
-			await server.WriteFileAsync(ctx, path);
+			return server.WriteFileAsync(ctx, path);
 		};
 	}
 
@@ -131,19 +128,18 @@ public static class D4SHandlers
 	 */
 	public static Func<HttpListenerContext, Task> CreateDirectoryTree(D4S server)
 	{
-		return async ctx =>
+		return ctx =>
 		{
 			var param = D4S.GetParams(ctx);
 			var path  = param.ContainsKey("path") ? param["path"] : "";
 
 			if (path == "" || !Directory.Exists(path))
 			{
-				await server.WriteTextAsync(ctx, "{}", "application/json", 403);
-				return;
+				return server.WriteTextAsync(ctx, "{}", "application/json", 403);
 			}
 
 			var obj = new JsonDirectory(new DirectoryInfo(path));
-			await server.WriteTextAsync(ctx, Json.Stringify(obj.ToObject()), "application/json");
+			return server.WriteTextAsync(ctx, Json.Stringify(obj.ToObject()), "application/json");
 		};
 	}
 }

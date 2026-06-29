@@ -14,36 +14,85 @@ interface State {
 }
 
 // ---------- ---------- ---------- ---------- ----------
-// action_button1Click
+// action_hello
 // ---------- ---------- ---------- ---------- ----------
-/**
- * GET
- */
-const action_button1Click = (state: State) => {
 
-	// effect
-	const effect_get = async (dispatch: Dispatch<State>) => {
-		const res = await fetch("/api/test?text=hello world");
+const action_hello = (state: State) => {
+	return [state, async (dispatch: Dispatch<State>) => {
+		const res = await fetch("/api/hello")
 		alert(await res.text())
-	}
-
-	// result
-	return [state, effect_get]
+	}]
 }
 
 // ---------- ---------- ---------- ---------- ----------
-// action_button2Click
+// action_startProcess
 // ---------- ---------- ---------- ---------- ----------
-/**
- * POST
- */
-const action_button2Click = (state: State) => {
 
-	// effect
-	const effect = async (dispatch: Dispatch<State>) => {
+const action_startProcess = (state: State) => {
+	return [state, async (dispatch: Dispatch<State>) => {
+		const res = await fetch("/api/startProcess?app=notepad")
+		alert(await res.text())
+	}]
+}
 
-		// const data = new  URLSearchParams(); // こっちでも良い
-		const data = new FormData();
+// ---------- ---------- ---------- ---------- ----------
+// action_saveToFile
+// ---------- ---------- ---------- ---------- ----------
+
+const action_saveToFile = (state: State) => {
+	return [state, async (dispatch: Dispatch<State>) => {
+		const data = new FormData()
+
+		data.append("data", "hello world")
+		data.append("path", "../test.txt")
+
+		const res = await fetch("/api/saveToFile", {
+			method: "POST",
+			body  : data
+		})
+
+		alert(await res.text())
+	}]
+}
+
+// ---------- ---------- ---------- ---------- ----------
+// action_readFile
+// ---------- ---------- ---------- ---------- ----------
+
+const action_readFile = (state: State) => {
+	return [state, async (dispatch: Dispatch<State>) => {
+		const res = await fetch("../test.txt")
+
+		alert(await res.text())
+	}]
+}
+
+// ---------- ---------- ---------- ---------- ----------
+// action_loadFromFile
+// ---------- ---------- ---------- ---------- ----------
+
+const action_loadFromFile = (state: State) => {
+	return [state, async (dispatch: Dispatch<State>) => {
+		const data = new FormData()
+
+		data.append("path", "../test.txt")
+
+		const res = await fetch("/api/loadFromFile", {
+			method: "POST",
+			body  : data
+		})
+
+		alert(await res.text())
+	}]
+}
+
+// ---------- ---------- ---------- ---------- ----------
+// action_createDirectoryTree
+// ---------- ---------- ---------- ---------- ----------
+
+const action_createDirectoryTree = (state: State) => {
+	return [state, async (dispatch: Dispatch<State>) => {
+		const data = new FormData()
 
 		data.append("path", "./")
 
@@ -52,15 +101,10 @@ const action_button2Click = (state: State) => {
 			body  : data
 		})
 
-		const json = await res.json()
+		const message = await res.text()
 
-		dispatch((state: State) => ({
-			...state,
-			message: JSON.stringify(json, null, 2)
-		}))
-	}
-
-	return [state, effect]
+		dispatch((state: State) => ({ ...state, message}))
+	}]
 }
 
 // ---------- ---------- ---------- ---------- ----------
@@ -74,9 +118,13 @@ addEventListener("load", () => {
 			message: ""
 		},
 		view: (state: State) => (<body>
-			<button type = "button" onclick = { action_button1Click }>GET</button>
-			<button type = "button" onclick = { action_button2Click }>POST</button>
-			<pre>{ state.message }</pre>
+			<button type="button" onclick={action_hello}>Hello</button>
+			<button type="button" onclick={action_startProcess}>StartProcess</button>
+			<button type="button" onclick={action_saveToFile}>SaveToFile</button>
+			<button type="button" onclick={action_readFile}>ReadFile (fetch)</button>
+			<button type="button" onclick={action_loadFromFile}>LoadFromFile (API)</button>
+			<button type="button" onclick={action_createDirectoryTree}>CreationDirectoryTree</button>
+			<div>{ state.message }</div>
 		</body>)
 	})
 })
