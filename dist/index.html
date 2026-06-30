@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>D4S (.NET Framework 4.0 Server)</title>
+	<style>
+		body {
+			display       : flex;
+			flex-direction: column;
+			margin        : 0 auto;
+			max-width     : 1200px;
+
+			> * {
+				margin-bottom: 1rem;
+			}
+		}
+
+		button {
+			padding: 0.5rem;
+			cursor : pointer;
+		}
+
+		input {
+			padding: 0.5rem;
+		}
+
+		form {
+			display              : grid;
+			grid-template-columns: 1fr 1fr;
+			gap                  : 0.5rem;
+		}
+
+		pre {
+			padding         : 0.5rem;
+			background-color: #E0E0E0;
+		}
+
+	</style>
+	<script src="./index.js"></script>
+</head>
+<body>
+	<h1>D4S (.NET Framework 4.0 Server)</h1>
+
+	<!-- hello -->
+	<button type="button" id="hello">Hello</button>
+
+	<!-- startProcess -->
+	<button type="button" id="startProcess">Start Process (notepad)</button>
+
+	<!-- saveToFile-->
+	<form action="/api/saveToFile" method="post" id="saveToFile">
+		<input type="text" name="data" placeholder="data" />
+		<input type="hidden" name="path" value="../test.txt" />
+		<button type="submit">Save To File (ルートの一つ上に [test.txt] という名前で保存)</button>
+	</form>
+
+	<!-- loadFromFile -->
+	<button type="button" id="loadFromFile">Load From File (上で保存したファイルを読み込みます) </button>
+	<pre></pre>
+
+	<!-- createDirectoryTree -->
+	<button type="button" id="createDirectoryTree">Create Directory Tree (ルートフォルダからのツリーを作成)</button>
+
+	<!-- createDirectoryTreeDiff -->
+	<button type="button" id="createDirectoryTreeDiff">Create Directory Tree Diff (差分更新)</button>
+
+	<pre></pre>
+</body>
+</html>
