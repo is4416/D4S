@@ -142,4 +142,39 @@ public static class D4SHandlers
 			return server.WriteTextAsync(ctx, Json.Stringify(obj.ToObject()), "application/json");
 		};
 	}
+
+	// ---------- ---------- ----------
+	// CreateDirectoryTreeDiff
+	// ---------- ---------- ----------
+	/*
+	 * 作成済みの JSONツリーを差分更新する
+	 * [path] ディレクトリパス
+	 * [json] 更新前の JSON データ
+	 */
+	public static Func<HttpListenerContext, Task> CreateDirectoryTreeDiff(D4S server)
+	{
+		return ctx =>
+		{
+			var param = D4S.GetParams(ctx);
+			var path  = param.ContainsKey("path") ? param["path"] : "";
+			var json  = param.ContainsKey("json") ? param["json"] : "";
+
+			if (path == "" || json == "" || !Directory.Exists(path))
+			{
+				return server.WriteTextAsync(ctx, "{}", "application/json", 403);
+			}
+
+			try
+			{
+				var obj = Json.Parse(json);
+
+				JsonDirectory.Diff(obj, new DirectoryInfo(path));
+				return server.WriteTextAsync(ctx, Json.Stringify(obj), "application/json");
+			}
+			catch (Exception err)
+			{
+				return server.WriteTextAsync(ctx, "{}", "application/json", 400);
+			}
+		};
+	}
 }

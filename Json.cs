@@ -14,7 +14,7 @@ using System.Web.Script.Serialization;
 
 public static class Json
 {
-	// static
+	// public: static
 	// ---------- ---------- ----------
 	// Stringify
 	// ---------- ---------- ----------
@@ -31,6 +31,25 @@ public static class Json
 
 		// .NET 8
 		// return JsonSerializer.Serialize(obj);
+	}
+
+	// public: static
+	// ---------- ---------- ----------
+	// Parse
+	// ---------- ---------- ----------
+	/**
+	 * JSON文字列をオブジェクト化する
+	 */
+	public static Dictionary<string, object> Parse(string json)
+	{
+		// .NET Framework
+		var serializer            = new JavaScriptSerializer();
+		serializer.MaxJsonLength  = int.MaxValue;
+		serializer.RecursionLimit = 100;
+		return (Dictionary<string, object>)serializer.DeserializeObject(json);
+
+		// .NET 8
+		// return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
 	}
 }
 
