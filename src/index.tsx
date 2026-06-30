@@ -10,7 +10,7 @@ import h from "hyperapp-jsx-pragma"
 // ---------- ---------- ---------- ---------- ----------
 
 interface State {
-	message: string;
+	json: Record<string, any>
 }
 
 // ---------- ---------- ---------- ---------- ----------
@@ -101,9 +101,30 @@ const action_createDirectoryTree = (state: State) => {
 			body  : data
 		})
 
-		const message = await res.text()
+		const json = await res.json()
 
-		dispatch((state: State) => ({ ...state, message}))
+		dispatch((state: State) => ({ ...state, json }))
+	}]
+}
+
+// ---------- ---------- ---------- ---------- ----------
+// action_createDirectoryTreeDiff
+// ---------- ---------- ---------- ---------- ----------
+
+const action_createDirectoryTreeDiff = (state: State) => {
+	return [state, async (dispatch: Dispatch<State>) => {
+		const data = new FormData()
+
+		data.append("path", "./")
+		data.append("json", JSON.stringify(state.json))
+
+		const res = await fetch("/api/createDirectoryTreeDiff", {
+			method: "POST",
+			body  : data
+		})
+		const json = await res.json()
+
+		dispatch((state: State) => ({ ...state, json }))
 	}]
 }
 
@@ -115,16 +136,17 @@ addEventListener("load", () => {
 	app({
 		node: document.body,
 		init: {
-			message: ""
+			json: {}
 		},
 		view: (state: State) => (<body>
 			<button type="button" onclick={action_hello}>Hello</button>
-			<button type="button" onclick={action_startProcess}>StartProcess</button>
-			<button type="button" onclick={action_saveToFile}>SaveToFile</button>
-			<button type="button" onclick={action_readFile}>ReadFile (fetch)</button>
-			<button type="button" onclick={action_loadFromFile}>LoadFromFile (API)</button>
-			<button type="button" onclick={action_createDirectoryTree}>CreationDirectoryTree</button>
-			<div>{ state.message }</div>
+			<button type="button" onclick={action_startProcess}>Start Process</button>
+			<button type="button" onclick={action_saveToFile}>Save To File</button>
+			<button type="button" onclick={action_readFile}>Read File (fetch)</button>
+			<button type="button" onclick={action_loadFromFile}>Load From File (API)</button>
+			<button type="button" onclick={action_createDirectoryTree}>Create Directory Tree</button>
+			<button type="button" onclick={action_createDirectoryTreeDiff}>Create Directory Tree Diff</button>
+			<pre>{ JSON.stringify(state.json, null, 2) }</pre>
 		</body>)
 	})
 })

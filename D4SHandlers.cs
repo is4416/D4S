@@ -173,6 +173,7 @@ public static class D4SHandlers
 			}
 			catch (Exception err)
 			{
+				Console.WriteLine(err);
 				return server.WriteTextAsync(ctx, "{}", "application/json", 400);
 			}
 		};

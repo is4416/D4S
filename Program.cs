@@ -17,9 +17,9 @@ class Program
 	static void Main()
 	{
 		string address  = "http://localhost:8000/";
-		string rootPath = "dist";
+		string rootPath = "dist"; // Document Root
 
-		D4S server = new D4S(address, rootPath);
+		var server = new D4S(address, rootPath);
 
 		// ルーティング追加 (例)
 		server.AddRoute(HttpMethod.GET, "/api/test", (HttpListenerContext ctx) => {
@@ -41,8 +41,9 @@ class Program
 		server.AddRoute(HttpMethod.POST, "/api/saveToFile", D4SHandlers.SaveToFile(server)); // data, path
 		server.AddRoute(HttpMethod.POST, "/api/loadFromFile", D4SHandlers.LoadFromFile(server)); // path
 		server.AddRoute(HttpMethod.POST, "/api/createDirectoryTree", D4SHandlers.CreateDirectoryTree(server)); // path
+		server.AddRoute(HttpMethod.POST, "/api/createDirectoryTreeDiff", D4SHandlers.CreateDirectoryTreeDiff(server)); // path, json
 
-		// ブラウザ起動
+		// ブラウザ起動 (不要なら削除可)
 		Process.Start(address);
 
 		// サーバー起動

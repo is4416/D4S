@@ -82,11 +82,10 @@ public class JsonItem
 	 * JsonItem を JSON 変換可能オブジェクトに変換する
 	 * 返値は Dictionary<string, object>
 	 */
-	public virtual object ToObject()
+	public virtual Dictionary<string, object> ToObject()
 	{
 		var result = new Dictionary<string, object>();
 
-		result["name"]           = _info.Name;
 		result["attributes"]     = (long)_info.Attributes;
 		result["creationTime"]   = _info.CreationTimeUtc.ToString("o");
 		result["lastWriteTime"]  = _info.LastWriteTimeUtc.ToString("o");
@@ -115,9 +114,9 @@ public class JsonFile : JsonItem
 	// ToObject
 	// ---------- ---------- ----------
 
-	public override object ToObject()
+	public override Dictionary<string, object> ToObject()
 	{
-		var result = (Dictionary<string, object>)base.ToObject();
+		var result = base.ToObject();
 
 		var fileInfo = (FileInfo)_info;
 
@@ -216,6 +215,18 @@ public class JsonDirectory : JsonItem
 	 */
 	public static Dictionary<string, object> Diff(Dictionary<string, object> json, DirectoryInfo info)
 	{
+		if (!json.ContainsKey("files"))
+		{
+			Console.WriteLine("JsonDirectory.Diff(): 'files' not found.");
+			throw new ArgumentException("JsonDirectory.Diff(): 'files' not found.");
+		}
+
+		if (!json.ContainsKey("directories"))
+		{
+			Console.WriteLine("JsonDirectory.Diff(): 'directories' not found.");
+			throw new ArgumentException("JsonDirectory.Diff(): 'directories' not found.");
+		}
+
 		var files       = (Dictionary<string, object>) json["files"];
 		var directories = (Dictionary<string, object>) json["directories"];
 
@@ -342,14 +353,14 @@ public class JsonDirectory : JsonItem
 		return json;
 	}
 
-	// public: override
+	// private
 	// ---------- ---------- ----------
-	// ToObject
+	// ToObjectCore
 	// ---------- ---------- ----------
 
-	public override object ToObject()
+	private Dictionary<string, object> ToObjectCore()
 	{
-		var result = (Dictionary<string, object>)base.ToObject();
+		var result = base.ToObject();
 
 		// files
 		var files = new Dictionary<string, object>();
@@ -366,12 +377,26 @@ public class JsonDirectory : JsonItem
 
 		foreach (var kv in _directories)
 		{
-			directories[kv.Key] = kv.Value.ToObject();
+			directories[kv.Key] = kv.Value.ToObjectCore();
 		}
 
 		result["directories"] = directories;
 
 		// result
+		return result;
+	}
+
+	// public: override
+	// ---------- ---------- ----------
+	// ToObject
+	// ---------- ---------- ----------
+
+	public override Dictionary<string, object> ToObject()
+	{
+		var result = ToObjectCore();
+
+		result["path"] = ((DirectoryInfo)_info).FullName;
+
 		return result;
 	}
 }

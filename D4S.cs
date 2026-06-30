@@ -457,3 +457,72 @@ public class D4S
 		_listener.Stop();
 	}
 }
+
+// ---------- ---------- ---------- ---------- ----------
+// D4SLog
+// ---------- ---------- ---------- ---------- ----------
+/**
+ * 簡易的なロガー
+ */
+public static class D4SLog
+{
+	// ---------- ---------- ----------
+	// Field
+	// ---------- ---------- ----------
+
+	private const int MAX_LOG = 100;
+	private static readonly object _lock = new object();
+	private static readonly List<string> _logs = new List<string>();
+
+	// public: static
+	// ---------- ---------- ----------
+	// Write
+	// ---------- ---------- ----------
+	/**
+	 * ログ及びコンソールへの書き込み
+	 */
+	public static void Write(string text)
+	{
+		lock(_lock)
+		{
+			_logs.Add(text);
+
+			if (_logs.Count > MAX_LOG)
+			{
+				_logs.RemoveAt(0);
+			}
+
+			Console.WriteLine(text);
+		}
+	}
+
+	// public: static
+	// ---------- ---------- ----------
+	// Get
+	// ---------- ---------- ----------
+	/**
+	 * 現在のログを取得する
+	 */
+	public static List<string> Get()
+	{
+		lock(_lock)
+		{
+			return new List<string>(_logs);
+		}
+	}
+
+	// public: static
+	// ---------- ---------- ----------
+	// Clear
+	// ---------- ---------- ----------
+	/**
+	 * ログを初期化する
+	 */
+	public static void Clear()
+	{
+		lock(_lock)
+		{
+			_logs.Clear();
+		}
+	}
+}

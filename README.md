@@ -37,8 +37,8 @@ D4S/
 - 外部ライブラリ不要
 - .NET Framework 4.0 標準機能のみで動作
 - 静的ファイル配信
-- GET / POST のルーティング
-- JSON レスポンス生成
+- GET / POST ルーティング
+- JSON レスポンス
 - MIME タイプ自動判定
 
 ---
@@ -53,7 +53,7 @@ D4S/
 csc Program.cs D4S.cs
 ```
 
-`Json.cs` や `D4SHandlers.cs` を利用する場合は、それらも一緒にコンパイルしてください
+サンプルを利用する場合は、Json.cs と D4SHandlers.cs も一緒にコンパイルしてください
 
 ---
 
@@ -108,7 +108,7 @@ JSON形式に変換可能なオブジェクトの基底クラス
 public class JsonItem
 {
 	public JsonItem(FileSystemInfo info);
-	public virtual object ToObject();
+	public virtual Dictionary<string, object> ToObject();
 }
 ```
 
@@ -120,7 +120,7 @@ JSON形式に変換可能なファイル用オブジェクト
 public class JsonFile : JsonItem
 {
 	public JsonFile(FileInfo info);
-	public override object ToObject();
+	public override Dictionary<string, object> ToObject();
 }
 ```
 
@@ -133,7 +133,7 @@ public class JsonDirectory : JsonItem
 {
 	public JsonDirectory(DirectoryInfo info, int depth = -1);
 	public static Dictionary<string, object> Diff(Dictionary<string, object> json, DirectoryInfo info);
-	public override object ToObject();
+	public override Dictionary<string, object> ToObject();
 }
 ```
 
@@ -146,7 +146,7 @@ public class JsonDirectory : JsonItem
 
 **Diff**
 
-既存のディレクトリツリー JSON オブジェクトを更新します  
+既存のディレクトリツリー JSON オブジェクトを現在のディレクトリの状態へ更新します  
 変更があったファイル・ディレクトリのみを再生成し、それ以外は既存のオブジェクトを再利用します。
 
 ---
@@ -203,6 +203,23 @@ public class D4S
 - Start         : サーバーを起動します
 - Stop          : サーバーを停止します
 
+**D4SLog**
+
+開発自に利用できる簡易的なロガーです
+
+```csharp
+public static class D4SLog
+{
+	public static void Write(string text);
+	public static List<string> Get();
+	public static void Clear();
+}
+```
+
+- Write: ログを追加し、コンソールへ出力します
+- Get  : 現在のログを取得します
+- Clear: ログを消去します
+
 ---
 
 ## ルート追加例
@@ -252,7 +269,7 @@ public static class D4SHandlers
 - SaveToFile             : `data` を `path` で指定した場所に保存する (とりあえずテキストデータだけ)
 - LoadFromFile           : `path` からデータを取得
 - CreateDirectoryTree    : `path` で指定したディレクトリパスから、ディレクトリツリーを JSON オブジェクトとして取得する
-- CreateDirectoryTreeDiff: `path` の現在の状態で `json` を差分更新する
+- CreateDirectoryTreeDiff: `path` の現在の状態に合わせて `json` を差分更新する
 
 ---
 
