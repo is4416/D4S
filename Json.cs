@@ -188,6 +188,141 @@ public class JsonDirectory : JsonItem
 		}
 	}
 
+	// public: static
+	// ---------- ---------- ----------
+	// Diff
+	// ---------- ---------- ----------
+	/**
+	 * オブジェクトの差分更新
+	 */
+	public static Dictionary<string, object> Diff(Dictionary<string, object> json, DirectoryInfo info)
+	{
+		var files       = (Dictionary<string, object>) json["files"];
+		var directories = (Dictionary<string, object>) json["directories"];
+
+		// files
+		try
+		{
+			var fileInfoList    = new List<FileInfo>(info.EnumerateFiles());
+			var fileNames       = new HashSet<string>();
+			var removeFileNames = new List<string>();
+
+			// create fileNames
+			foreach(var f in fileInfoList)
+			{
+				fileNames.Add(f.Name);
+			}
+
+			// create removeFileList
+			foreach(var key in files.Keys)
+			{
+				if (!fileNames.Contains(key))
+				{
+					removeFileNames.Add(key);
+				}
+			}
+
+			// delete file
+			foreach(var key in removeFileNames)
+			{
+				files.Remove(key);
+			}
+
+			// new + update
+			foreach(var f in fileInfoList)
+			{
+				string key = f.Name;
+
+				if (files.ContainsKey(key))
+				{
+					// update
+					var item = (Dictionary<string, object>) files[key];
+					string lastWriteTime = (string) item["lastWriteTime"];
+					if (lastWriteTime != f.LastWriteTimeUtc.ToString("o"))
+					{
+						files[key] = new JsonFile(f).ToObject();
+					}
+				}
+				else
+				{
+					// new
+					files[key] = new JsonFile(f).ToObject();
+				}
+			}
+
+		}
+		catch (Exception err)
+		{
+			Console.WriteLine("error: diff EnumerateFiles " + err.Message);
+		}
+
+		// directories
+		try
+		{
+			var directoryInfoList    = new List<DirectoryInfo>(info.EnumerateDirectories());
+			var directoryNames       = new HashSet<string>();
+			var removeDirectoryNames = new List<string>();
+
+			// create directoryNames
+			foreach(var d in directoryInfoList)
+			{
+				if ((d.Attributes & FileAttributes.ReparsePoint) != 0)
+				{
+					continue;
+				}
+				directoryNames.Add(d.Name);
+			}
+
+			// create removeDirectoryNames
+			foreach(var key in directories.Keys)
+			{
+				if (!directoryNames.Contains(key))
+				{
+					removeDirectoryNames.Add(key);
+				}
+			}
+
+			// delete directory
+			foreach(var key in removeDirectoryNames)
+			{
+				directories.Remove(key);
+			}
+
+			// new + update
+			foreach(var d in directoryInfoList)
+			{
+				if ((d.Attributes & FileAttributes.ReparsePoint) != 0)
+				{
+					continue;
+				}
+
+				string key = d.Name;
+
+				if (directories.ContainsKey(key))
+				{
+					// update
+					var item = (Dictionary<string, object>) directories[key];
+					string lastWriteTime = (string) item["lastWriteTime"];
+					if (lastWriteTime != (string) d.LastWriteTimeUtc.ToString("o"))
+					{
+						directories[key] = JsonDirectory.Diff((Dictionary<string, object>) directories[key], d);
+					}
+				}
+				else
+				{
+					// new
+					directories[key] = new JsonDirectory(d).ToObject();
+				}
+			}
+		}
+		catch (Exception err)
+		{
+			Console.WriteLine("error: diff EnumerateDirectories " + err.Message);
+		}
+
+		return json;
+	}
+
 	// public: override
 	// ---------- ---------- ----------
 	// ToObject

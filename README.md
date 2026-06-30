@@ -3,7 +3,7 @@
 .NET Framework 4.0 標準機能だけで動作する、  
 フロントエンド開発者向けの軽量ローカルWebサーバーです。
 
-フロントエンドを中心に開発し、バックエンドは AddRoute に必要な処理を書くだけで利用できます  
+フロントエンド開発を中心に、バックエンドは AddRoute に必要な処理を書くだけで利用できます  
 静的ファイル配信や HTTP リクエスト処理は D4S が担当します
 
 Node.js や .NET SDK などをインストールできない会社の Windows PC 上でも、付属の csc だけでビルド・実行できることをコンセプトとしています
@@ -33,7 +33,7 @@ D4S/
 
 ## Features
 
-- Single-file library (`D4S.cs`)
+- 単一ファイルライブラリ (`D4S.cs`)
 - 外部ライブラリ不要
 - .NET Framework 4.0 標準機能のみで動作
 - 静的ファイル配信
@@ -130,15 +130,22 @@ JSON形式に変換可能なディレクトリ用オブジェクト
 public class JsonDirectory : JsonItem
 {
 	public JsonDirectory(DirectoryInfo info, int depth = -1);
+	public static Dictionary<string, object> Diff(Dictionary<string, object> json, DirectoryInfo info);
 	public override object ToObject();
 }
 ```
 
 **JsonDirectory**
+
 - depth: 子ディレクトリを再帰的に取得する深さ
 - `-1`: 全階層取得 (規定値)
 - `0` : 子ディレクトリを取得しない (ファイルのみ)
 - `1`以上 : 指定した階層まで取得
+
+**Diff**
+
+既に `ToObject()` で生成した JSON オブジェクトを更新します。  
+変更があったファイル・ディレクトリのみを再生成し、それ以外は既存のオブジェクトを再利用します。
 
 ---
 
@@ -241,7 +248,7 @@ public static class D4SHandlers
 - StartProcess       : `app` を `args` 付きで呼び出す
 - SaveToFile         : `data` を `path` で指定した場所に保存する (とりあえずテキストデータだけ)
 - LoadFromFile       : `path` からデータを取得
-- CreateDirectoryTree: `path` で指定したディレクトリパスから、JSON ツリーを作成する
+- CreateDirectoryTree: `path` で指定したディレクトリパスから、ディレクトリツリーを JSON オブジェクトとして取得する
 
 ---
 
