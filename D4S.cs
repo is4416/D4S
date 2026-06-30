@@ -165,7 +165,9 @@ public class D4S
 		// POST
 		if (req.HasEntityBody)
 		{
-			using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
+			// using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
+			// multipart/form-data は ContentEncoding が正しく設定されない場合があるため UTF-8 固定で読み込む
+			using (var reader = new StreamReader(req.InputStream, Encoding.UTF8))
 			{
 				string body = reader.ReadToEnd();
 				string contentType = req.ContentType ?? "";
