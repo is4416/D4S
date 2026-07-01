@@ -92,6 +92,10 @@ abstract class JsonItem {
 
 		return result.reverse()
 	}
+
+	getPathParts(): string[] {
+		return this.getParentDirectories().map(d => d.path ?? d.name).concat(this.name)
+	}
 }
 
 // class

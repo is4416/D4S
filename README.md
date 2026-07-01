@@ -97,6 +97,7 @@ public static class Json
 {
 	public static string Stringify(object obj);
 	public static Dictionary<string, object> Parse(string json);
+	public static T Parse<T>(string json);
 }
 ```
 
@@ -147,7 +148,7 @@ public class JsonDirectory : JsonItem
 **Diff**
 
 既存のディレクトリツリー JSON オブジェクトを現在のディレクトリの状態へ更新します  
-変更があったファイル・ディレクトリのみを再生成し、それ以外は既存のオブジェクトを再利用します。
+変更があったファイル・ディレクトリのみ更新し、変更のないオブジェクトは再利用します
 
 ---
 
@@ -261,15 +262,17 @@ public static class D4SHandlers
 	public static Func<HttpListenerContext, Task> LoadFromFile(D4S server);
 	public static Func<HttpListenerContext, Task> CreateDirectoryTree(D4S server);
 	public static Func<HttpListenerContext, Task> CreateDirectoryTreeDiff(D4S server);
+	public static Func<HttpListenerContext, Task> PathCombine(D4S server);
 }
 ```
 
 - Hello                  : ハンドラ実装例
 - StartProcess           : `app` を `args` 付きで呼び出す
-- SaveToFile             : `data` を `path` で指定した場所に保存する (とりあえずテキストデータだけ)
-- LoadFromFile           : `path` からデータを取得
-- CreateDirectoryTree    : `path` で指定したディレクトリパスから、ディレクトリツリーを JSON オブジェクトとして取得する
+- SaveToFile             : `path` に `data` を保存する (現在テキストデータだけ)
+- LoadFromFile           : `path` のファイルを読み込む
+- CreateDirectoryTree    : `path` のディレクトリツリーを取得する
 - CreateDirectoryTreeDiff: `path` の現在の状態に合わせて `json` を差分更新する
+- PathCombine            : JSON 配列 `parts` を Path.Combine() で結合し、フルパスを返す
 
 ---
 

@@ -51,6 +51,25 @@ public static class Json
 		// .NET 8
 		// return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
 	}
+
+	// public: static overload
+	// ---------- ---------- ----------
+	// Parse
+	// ---------- ---------- ----------
+	/**
+	* JSON文字列を指定した型に変換する
+	*/
+	public static T Parse<T>(string json)
+	{
+		// .NET Framework
+		var serializer            = new JavaScriptSerializer();
+		serializer.MaxJsonLength  = int.MaxValue;
+		serializer.RecursionLimit = 100;
+		return serializer.Deserialize<T>(json);
+
+		// .NET 8
+		// return JsonSerializer.Deserialize<T>(json);
+	}
 }
 
 // ---------- ---------- ---------- ---------- ----------

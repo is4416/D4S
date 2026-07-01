@@ -178,4 +178,30 @@ public static class D4SHandlers
 			}
 		};
 	}
+
+	// ---------- ---------- ----------
+	// pathCombine
+	// ---------- ---------- ----------
+	/**
+	 * パス要素を結合してフルパスを返す
+	 * [parts] パス要素のJSON配列
+	 */
+	public static Func<HttpListenerContext, Task> PathCombine(D4S server)
+	{
+		return ctx => {
+			var    param = D4S.GetParams(ctx);
+			string json  = param.ContainsKey("parts") ? param["parts"] : "[]";
+
+			try
+			{
+				var parts = Json.Parse<string[]>(json);
+				return server.WriteTextAsync(ctx, Path.Combine(parts));
+			}
+			catch (Exception err)
+			{
+				Console.WriteLine("error: PathCombine " + err.Message);
+				return server.WriteTextAsync(ctx, "", statusCode: 400);
+			}
+		};
+	}
 }
