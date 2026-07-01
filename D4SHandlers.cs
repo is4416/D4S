@@ -51,7 +51,7 @@ public static class D4SHandlers
 			}
 
 			// 相対パスから絶対パスへの変換
-			if (Path.IsPathRooted(app))
+			if (!Path.IsPathRooted(app))
 			{
 				app = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, app);
 			}
@@ -137,6 +137,11 @@ public static class D4SHandlers
 				return server.WriteTextAsync(ctx, "error: saveToFile path = " + path, statusCode: 403);
 			}
 
+			if (!Path.IsPathRooted(path))
+			{
+				path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+			}
+
 			var parent = Path.GetDirectoryName(path);
 
 			if (!string.IsNullOrEmpty(parent)) {
@@ -167,10 +172,17 @@ public static class D4SHandlers
 			var param = D4S.GetParams(ctx);
 			var path  = param.ContainsKey("path") ? param["path"] : "";
 
-			if (
-				path == "" ||
-				!File.Exists(path)
-			)
+			if (path == "")
+			{
+				return server.WriteTextAsync(ctx, "error: loadFromFile path = " + path, statusCode: 403);
+			}
+
+			if (!Path.IsPathRooted(path))
+			{
+				path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+			}
+
+			if (!File.Exists(path))
 			{
 				return server.WriteTextAsync(ctx, "error: loadFromFile path = " + path, statusCode: 403);
 			}
@@ -192,7 +204,12 @@ public static class D4SHandlers
 			var param = D4S.GetParams(ctx);
 			var path  = param.ContainsKey("path") ? param["path"] : "";
 
-			if (path == "" || !Directory.Exists(path))
+			if (!Path.IsPathRooted(path))
+			{
+				path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+			}
+
+			if (!Directory.Exists(path))
 			{
 				return server.WriteTextAsync(ctx, "{}", "application/json", 403);
 			}
@@ -218,7 +235,12 @@ public static class D4SHandlers
 			var path  = param.ContainsKey("path") ? param["path"] : "";
 			var json  = param.ContainsKey("json") ? param["json"] : "";
 
-			if (path == "" || json == "" || !Directory.Exists(path))
+			if (!Path.IsPathRooted(path))
+			{
+				path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+			}
+
+			if (json == "" || !Directory.Exists(path))
 			{
 				return server.WriteTextAsync(ctx, "{}", "application/json", 403);
 			}

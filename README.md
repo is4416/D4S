@@ -194,7 +194,8 @@ public class D4S
 }
 ```
 
-コンストラクタで `rootPath` を省略した場合は、exe ファイルが配置されたフォルダがドキュメントルートとなります。
+コンストラクタで `rootPath` を省略した場合は、exe ファイルが配置されたフォルダがドキュメントルートとなります  
+D4SHandlers に含まれるファイル・ディレクトリを扱うハンドラも、相対パスは exe ファイルが配置されたフォルダを基準として扱います
 
 - GetMimeType   : 拡張子から MIME タイプを取得します
 - GetParams     : GET または POST のパラメータを取得します
@@ -267,12 +268,16 @@ public static class D4SHandlers
 ```
 
 - Hello                  : ハンドラ実装例
-- ExecuteProcess         : `app` を `args` 付きで呼び出す
-- SaveToFile             : `path` に `data` を保存する (現在テキストデータだけ)
-- LoadFromFile           : `path` のファイルを読み込む
-- CreateDirectoryTree    : `path` のディレクトリツリーを取得する
-- CreateDirectoryTreeDiff: `path` の現在の状態に合わせて `json` を差分更新する
+- ExecuteProcess         : `app` を `args` 付きで実行する（相対パスは exe ファイル基準）
+- SaveToFile             : `path` に `data` を保存する（相対パスは exe ファイル基準）
+- LoadFromFile           : `path` のファイルを読み込む（相対パスは exe ファイル基準）
+- CreateDirectoryTree    : `path` のディレクトリツリーを取得する（空文字・相対パスは exe ファイル基準）
+- CreateDirectoryTreeDiff: `path` の現在の状態に合わせて `json` を差分更新する（空文字・相対パスは exe ファイル基準）
 - PathCombine            : JSON 配列 `parts` を Path.Combine() で結合し、フルパスを返す
+
+**CreateDirectoryTree / CreateDirectoryTreeDiff**
+- `path` を省略または空文字にした場合は、exe ファイルが配置されたフォルダを対象とします
+- 相対パスを指定した場合も、exe ファイルが配置されたフォルダを基準として解決されます
 
 ---
 
