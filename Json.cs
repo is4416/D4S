@@ -86,10 +86,10 @@ public class JsonItem
 	{
 		var result = new Dictionary<string, object>();
 
-		result["attributes"]     = (long)_info.Attributes;
-		result["creationTime"]   = _info.CreationTimeUtc.ToString("o");
-		result["lastWriteTime"]  = _info.LastWriteTimeUtc.ToString("o");
-		result["lastAccessTime"] = _info.LastAccessTimeUtc.ToString("o");
+		result["attributes"]        = (long)_info.Attributes;
+		result["creationTimeUtc"]   = _info.CreationTimeUtc.ToString("o");
+		result["lastWriteTimeUtc"]  = _info.LastWriteTimeUtc.ToString("o");
+		result["lastAccessTimeUtc"] = _info.LastAccessTimeUtc.ToString("o");
 
 		return result;
 	}
@@ -227,6 +227,11 @@ public class JsonDirectory : JsonItem
 			throw new ArgumentException("JsonDirectory.Diff(): 'directories' not found.");
 		}
 
+		json["attributes"]        = (long)info.Attributes;
+		json["creationTimeUtc"]   = info.CreationTimeUtc.ToString("o");
+		json["lastAccessTimeUtc"] = info.LastAccessTimeUtc.ToString("o");
+		json["lastWriteTimeUtc"]  = info.LastWriteTimeUtc.ToString("o");
+
 		var files       = (Dictionary<string, object>) json["files"];
 		var directories = (Dictionary<string, object>) json["directories"];
 
@@ -267,8 +272,8 @@ public class JsonDirectory : JsonItem
 				{
 					// update
 					var item = (Dictionary<string, object>) files[key];
-					string lastWriteTime = (string) item["lastWriteTime"];
-					if (lastWriteTime != f.LastWriteTimeUtc.ToString("o"))
+					string lastWriteTimeUtc = (string) item["lastWriteTimeUtc"];
+					if (lastWriteTimeUtc != f.LastWriteTimeUtc.ToString("o"))
 					{
 						files[key] = new JsonFile(f).ToObject();
 					}
@@ -332,8 +337,8 @@ public class JsonDirectory : JsonItem
 				{
 					// update
 					var item = (Dictionary<string, object>) directories[key];
-					string lastWriteTime = (string) item["lastWriteTime"];
-					if (lastWriteTime != (string) d.LastWriteTimeUtc.ToString("o"))
+					string lastWriteTimeUtc = (string) item["lastWriteTimeUtc"];
+					if (lastWriteTimeUtc != d.LastWriteTimeUtc.ToString("o"))
 					{
 						directories[key] = JsonDirectory.Diff((Dictionary<string, object>) directories[key], d);
 					}

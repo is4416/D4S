@@ -205,7 +205,7 @@ public class D4S
 
 **D4SLog**
 
-開発自に利用できる簡易的なロガーです
+開発時に利用できる簡易的なロガーです
 
 ```csharp
 public static class D4SLog
