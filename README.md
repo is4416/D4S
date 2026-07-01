@@ -257,7 +257,7 @@ server.Start().Wait();
 public static class D4SHandlers
 {
 	public static Func<HttpListenerContext, Task> Hello(D4S server);
-	public static Func<HttpListenerContext, Task> StartProcess(D4S server);
+	public static Func<HttpListenerContext, Task> ExecuteProcess(D4S server);
 	public static Func<HttpListenerContext, Task> SaveToFile(D4S server);
 	public static Func<HttpListenerContext, Task> LoadFromFile(D4S server);
 	public static Func<HttpListenerContext, Task> CreateDirectoryTree(D4S server);
@@ -267,7 +267,7 @@ public static class D4SHandlers
 ```
 
 - Hello                  : ハンドラ実装例
-- StartProcess           : `app` を `args` 付きで呼び出す
+- ExecuteProcess         : `app` を `args` 付きで呼び出す
 - SaveToFile             : `path` に `data` を保存する (現在テキストデータだけ)
 - LoadFromFile           : `path` のファイルを読み込む
 - CreateDirectoryTree    : `path` のディレクトリツリーを取得する

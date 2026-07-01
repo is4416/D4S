@@ -20,10 +20,10 @@ onMessage("click", "#hello", async () => {
 })
 
 
-// startProcess
-onMessage("click", "#startProcess", async () => {
-	const res = await fetch("/api/startProcess?app=notepad")
-	console.log(await res.text())
+// executeProcess
+onMessage("click", "#executeProcess", async () => {
+	const res = await fetch("/api/executeProcess?app=notepad")
+	alert(await res.text())
 })
 
 
@@ -96,4 +96,12 @@ onMessage("click", "#createDirectoryTreeDiff", async e => {
 	pre.textContent = JSON.stringify(await res.json(), null, 2)
 
 	alert("差分更新")
+})
+
+
+// openFolderDialog
+onMessage("click", "#openFolderDialog", async () => {
+	const app = "C:\\Users\\isYos\\Desktop\\D4S\\OpenFolderDialog.exe"
+	const res = await fetch("/api/executeProcess?app=" + app)
+	alert(await res.text())
 })

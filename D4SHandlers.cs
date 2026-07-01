@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-
 // ---------- ---------- ---------- ---------- ----------
 // D4SHandlers
 // ---------- ---------- ---------- ---------- ----------
@@ -28,31 +27,91 @@ public static class D4SHandlers
 	}
 
 	// ---------- ---------- ----------
-	// StartProcess
+	// ExecuteProcess
 	// ---------- ---------- ----------
 	/**
-	 * [app] を [args] 付きで呼び出す
-	 */
-	public static Func<HttpListenerContext, Task> StartProcess(D4S server)
+	* [app]  外部 exe のパス
+	* [args] 外部 exe に渡す引数
+	*/
+	public static Func<HttpListenerContext, Task> ExecuteProcess(D4S server)
 	{
 		return ctx => {
 			var param = D4S.GetParams(ctx);
-			var app   = param.ContainsKey("app") ? param["app"] : "";
-			var args  = param.ContainsKey("args") ? param["args"] : "";
+
+			var app  = param.ContainsKey("app")  ? param["app"]  : "";
+			var args = param.ContainsKey("args") ? param["args"] : "";
 
 			if (app == "")
 			{
-				return server.WriteTextAsync(ctx, "parameter 'app' is required", statusCode: 400);
+				return server.WriteTextAsync(
+					ctx,
+					"parameter 'app' is required",
+					statusCode: 400
+				);
+			}
+
+			// 相対パスから絶対パスへの変換
+			if (Path.IsPathRooted(app))
+			{
+				app = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, app);
 			}
 
 			try
 			{
-				Process.Start(app, args);
-				return server.WriteTextAsync(ctx, "success");
+				var info = new ProcessStartInfo
+				{
+					FileName               = app,
+					Arguments              = args,
+					UseShellExecute        = false,
+					RedirectStandardOutput = true,
+					RedirectStandardError  = true,
+					CreateNoWindow         = true
+				};
+
+				var process = Process.Start(info);
+				if (process == null)
+				{
+					return server.WriteTextAsync(
+						ctx,
+						"Failed to start process.",
+						statusCode: 500
+					);
+				}
+
+				using (process)
+				{
+					var outputTask = process.StandardOutput.ReadToEndAsync();
+					var errorTask  = process.StandardError.ReadToEndAsync();
+
+					if (!process.WaitForExit(30000))
+					{
+						process.Kill();
+
+						return server.WriteTextAsync(
+							ctx,
+							"Process timeout.",
+							statusCode: 500
+						);
+					}
+
+					var output = outputTask.Result;
+					var error  = errorTask.Result;
+
+					if (!string.IsNullOrEmpty(error))
+					{
+						return server.WriteTextAsync(ctx, error, statusCode: 500);
+					}
+
+					return server.WriteTextAsync(ctx, output);
+				}
 			}
 			catch (Exception err)
 			{
-				return server.WriteTextAsync(ctx, err.Message, statusCode: 500);
+				return server.WriteTextAsync(
+					ctx,
+					err.Message,
+					statusCode: 500
+				);
 			}
 		};
 	}

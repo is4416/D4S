@@ -37,13 +37,13 @@ class Program
 		// D4SHandlers利用（例）
 		// HttpMethodは、GET でも POST でも自由に設定できます
 		server.AddRoute(HttpMethod.GET, "/api/hello", D4SHandlers.Hello(server));
-		server.AddRoute(HttpMethod.GET, "/api/startProcess", D4SHandlers.StartProcess(server)); // app, args
+		server.AddRoute(HttpMethod.GET, "/api/executeProcess", D4SHandlers.ExecuteProcess(server)); // app, args
 		server.AddRoute(HttpMethod.POST, "/api/saveToFile", D4SHandlers.SaveToFile(server)); // data, path
 		server.AddRoute(HttpMethod.POST, "/api/loadFromFile", D4SHandlers.LoadFromFile(server)); // path
 		server.AddRoute(HttpMethod.POST, "/api/createDirectoryTree", D4SHandlers.CreateDirectoryTree(server)); // path
 		server.AddRoute(HttpMethod.POST, "/api/createDirectoryTreeDiff", D4SHandlers.CreateDirectoryTreeDiff(server)); // path, json
 
-		// ブラウザ起動 (不要なら削除可)
+		// ブラウザを開く (不要であれば省略可)
 		Process.Start(address);
 
 		// サーバー起動
